@@ -1,0 +1,33 @@
+<?php
+
+include 'connect.php'; // Your database connection file
+
+if (isset($_POST['signIn'])) {
+    $email = trim($_POST['email']);
+    $password = trim($_POST['password']);
+
+    // Check if email exists
+    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+    $stmt->bind_param("s", $email);
+    $stmt->execute();
+    $result = $stmt->get_result();
+
+    // User found?
+    if ($result->num_rows === 1) {
+        $user = $result->fetch_assoc();
+
+        // Verify password (use md5 if registration also uses md5, or switch to password_hash)
+        if (md5($password) === $user['password']) {
+            // Auth successful
+            $_SESSION['email'] = $user['email'];
+            $_SESSION['username'] = $user['username'];
+            header("Location: index.html");
+            exit();
+        } else {
+            echo "<p style='color:red;'>Incorrect email or password. Please try again. </p>";
+        }
+    } else {
+        echo "<p style='color:red;'>Incorrect email or password. Please try again. </p>";
+    }
+}
+?>
